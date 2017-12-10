@@ -7,40 +7,22 @@
       <div class="md-layout-item">
         <md-table md-card>
           <md-table-toolbar>
-            <h1 class="md-title">Users</h1>
+            <h1 class="md-title">Ranking</h1>
           </md-table-toolbar>
 
           <md-table-row>
-            <md-table-head md-numeric>ID</md-table-head>
-            <md-table-head>Name</md-table-head>
-            <md-table-head>Email</md-table-head>
-            <md-table-head>Gender</md-table-head>
-            <md-table-head>Job Title</md-table-head>
+            <md-table-head md-numeric>#</md-table-head>
+            <md-table-head>队伍名</md-table-head>
+            <md-table-head>分数</md-table-head>
           </md-table-row>
 
-          <md-table-row>
-            <md-table-cell md-numeric>1</md-table-cell>
-            <md-table-cell>Shawna Dubbin</md-table-cell>
-            <md-table-cell>sdubbin0@geocities.com</md-table-cell>
-            <md-table-cell>Male</md-table-cell>
-            <md-table-cell>Assistant Media Planner</md-table-cell>
-          </md-table-row>
-
-          <md-table-row>
-            <md-table-cell md-numeric>2</md-table-cell>
-            <md-table-cell>Odette Demageard</md-table-cell>
-            <md-table-cell>odemageard1@spotify.com</md-table-cell>
-            <md-table-cell>Female</md-table-cell>
-            <md-table-cell>Account Coordinator</md-table-cell>
-          </md-table-row>
-
-          <md-table-row>
-            <md-table-cell md-numeric>3</md-table-cell>
-            <md-table-cell>Vera Taleworth</md-table-cell>
-            <md-table-cell>vtaleworth2@google.ca</md-table-cell>
-            <md-table-cell>Male</md-table-cell>
-            <md-table-cell>Community Outreach Specialist</md-table-cell>
-          </md-table-row>
+          <template v-for="(team, index) in ranking">
+            <md-table-row>
+              <md-table-cell md-numeric>{{index + 1}}</md-table-cell>
+              <md-table-cell>{{team.teamName}}</md-table-cell>
+              <md-table-cell>{{team.score}}</md-table-cell>
+            </md-table-row>
+          </template>
         </md-table>
       </div>
       <div class="md-layout-item">
@@ -65,11 +47,43 @@
 </template>
 
 <script>
+  import System from "@/model/System";
   export default {
     name: 'HelloWorld',
     data() {
       return {
-        msg: 'Welcome to Your Vue.js App'
+        ranking: [],
+      }
+    },
+    mounted(){
+      this.loadRanking();
+    },
+    methods: {
+      async loadRanking(){
+        let result = await System.getAllLogs();
+        let scoreLogs = result.filter(log => {
+          return log.type === "team:score";
+        });
+        // 生成排行
+        let scores = {};
+        for (let log of scoreLogs){
+          if (scores[log.data.teamName]){
+            scores[log.data.teamName] += parseInt(log.data.inc);
+          }
+          else{
+            scores[log.data.teamName] = parseInt(log.data.inc);
+          }
+        }
+        let ranking = Array.from(Object.keys(scores), c => {
+          return {
+            teamName: c,
+            score: scores[c]
+          }
+        });
+        ranking = ranking.sort((a, b) => {
+          return b.score - a.score;
+        });
+        this.ranking = ranking;
       }
     }
   }
