@@ -17,7 +17,7 @@
           </md-table-row>
 
           <template v-for="(team, index) in ranking">
-            <md-table-row>
+            <md-table-row :key="team.teamName">
               <md-table-cell md-numeric>{{index + 1}}</md-table-cell>
               <md-table-cell>{{team.teamName}}</md-table-cell>
               <md-table-cell>{{team.score}}</md-table-cell>
@@ -32,8 +32,7 @@
           </md-card-header>
 
           <md-card-content>
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Optio itaque ea, nostrum odio. Dolores, sed
-            accusantium quasi non.
+            <chart :options="data"></chart>
           </md-card-content>
 
           <md-card-actions>
@@ -48,29 +47,58 @@
 
 <script>
   import System from "@/model/System";
+  import ECharts from 'vue-echarts/components/ECharts.vue'
+  import 'echarts/lib/chart/line'
+  import 'echarts/lib/component/tooltip'
+  import 'echarts/lib/component/legendScroll'
+
   export default {
-    name: 'HelloWorld',
+    name: 'Index',
     data() {
       return {
         ranking: [],
+        allScoreLogs: [],
+        startTime: [],
+        data: {
+          title: {
+            text: "Scores"
+          },
+          tooltip: {
+            trigger: 'axis'
+          },
+          legend: {
+            type: "scroll",
+            data: []
+          },
+          xAxis: {
+            type: "time",
+            boundaryGap: false,
+          },
+          yAxis: {
+            type: "value"
+          },
+          series: []
+        },
+        loading: false,
       }
     },
-    mounted(){
+    mounted() {
       this.loadRanking();
     },
     methods: {
-      async loadRanking(){
+      async loadRanking() {
         let result = await System.getAllLogs();
         let scoreLogs = result.filter(log => {
           return log.type === "team:score";
         });
+        this.allScoreLogs = scoreLogs;
         // 生成排行
         let scores = {};
-        for (let log of scoreLogs){
-          if (scores[log.data.teamName]){
+        for (let log of scoreLogs) {
+          if (scores[log.data.teamName]) {
             scores[log.data.teamName] += parseInt(log.data.inc);
           }
-          else{
+          else {
             scores[log.data.teamName] = parseInt(log.data.inc);
           }
         }
@@ -84,8 +112,74 @@
           return b.score - a.score;
         });
         this.ranking = ranking;
+        this.startTime = new Date(scoreLogs.reduce((a, b) => {
+          let timeA = a.data && new Date(a.data.time) || a;
+          let timeB = b.data && new Date(b.data.time) || b;
+          return Math.min(timeA.valueOf(), timeB.valueOf());
+        }));
+        this.data.series = this.generateChartSeries(scoreLogs);
+        this.data.legend.data = Object.keys(scores);
+      },
+      generateChartSeries(scoreLogs = []) {
+        if (scoreLogs.length === 0) {
+          return [];
+        }
+        let series = [];
+        let teamScores = [];
+        let data = [];
+        let teamNames = Array.from(this.ranking, r => r.teamName);
+        for (let teamName of teamNames){
+          let scoreLogs = this.allScoreLogs.filter(log => log.data.teamName === teamName).sort((a, b) => {
+            return new Date(a.data.time) - new Date(b.data.time);
+          });
+          for (let log of scoreLogs) {
+            if (!teamScores[log.data.teamName]) {
+              // init
+              teamScores[log.data.teamName] = 0;
+              data[log.data.teamName] = [];
+              // 起始点
+              data[log.data.teamName].push({
+                name: `${this.startTime.getFullYear()}-${this.startTime.getMonth() + 1}-${this.startTime.getDate()} ${this.startTime.getHours()}:${this.startTime.getMinutes()}:${this.startTime.getSeconds()}`,
+                value: [
+                  this.startTime,
+                  0
+                ]
+              })
+            }
+            let nowScore = teamScores[log.data.teamName] + parseInt(log.data.inc);
+            teamScores[log.data.teamName] += parseInt(log.data.inc);
+            let logTime = new Date(log.data.time);
+            console.log({
+              name: `${logTime.getFullYear()}-${logTime.getMonth() + 1}-${logTime.getDate()} ${logTime.getHours()}:${logTime.getMinutes()}:${logTime.getSeconds()}`,
+              value: [
+                logTime,
+                nowScore
+              ]
+            });
+            data[log.data.teamName].push({
+              name: `${logTime.getFullYear()}-${logTime.getMonth() + 1}-${logTime.getDate()} ${logTime.getHours()}:${logTime.getMinutes()}:${logTime.getSeconds()}`,
+              value: [
+                logTime,
+                nowScore
+              ]
+            });
+          }
+        }
+
+        series = Array.from(Object.keys(teamScores), teamName => {
+          return {
+            name: teamName,
+            type: 'line',
+            data: data[teamName]
+          }
+        });
+        return series;
       }
+    },
+    components: {
+      'chart': ECharts
     }
+
   }
 </script>
 
