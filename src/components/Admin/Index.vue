@@ -9,10 +9,19 @@
           <md-card>
             <md-card-header>
               <div class="md-title">日志</div>
+              <md-field style="width: 200px">
+                <label for="logFilter">日志筛选器</label>
+                <md-select v-model="logFilter" name="logFilter" id="logFilter">
+                  <md-option value="3">DEBUG 及以上</md-option>
+                  <md-option value="2">INFO 及以上</md-option>
+                  <md-option value="1">WARNING 及以上</md-option>
+                  <md-option value="0">ERROR 及以上</md-option>
+                </md-select>
+              </md-field>
             </md-card-header>
 
             <md-card-content>
-              <template v-for="log in logs">
+              <template v-for="log in logs.filter(l => l.level <= logFilter)">
                 <div v-if="log.type === 'team:score'">
                   [<span :class="getLevelClassName(log.level)">{{log.level | levelToText}}</span>]
                   [<span class="log-time"> {{log.data.time}} </span>] 队伍
@@ -74,7 +83,8 @@
         token: '',
         loading: false,
         logs: [],
-        levelMap: ["ERROR", "WARNING", "INFO", "DEBUG"]
+        levelMap: ["ERROR", "WARNING", "INFO", "DEBUG"],
+        logFilter: 3
       }
     },
     methods: {
