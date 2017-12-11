@@ -1,7 +1,7 @@
 <template>
   <div class="main-container">
     <md-toolbar class="md-primary">
-      <h3 class="md-title">HCTF</h3>
+      <h3 class="md-title">HCTF 2017</h3>
     </md-toolbar>
     <div class="md-layout md-gutter main-panel">
       <div class="md-layout-item">
@@ -20,7 +20,9 @@
             <md-table-row :key="team.teamName">
               <md-table-cell md-numeric>{{index + 1}}</md-table-cell>
               <md-table-cell>{{team.teamName}}</md-table-cell>
-              <md-table-cell>{{team.score}}</md-table-cell>
+              <md-table-cell>
+                <span :class="team.effect">{{team.score}}</span>
+              </md-table-cell>
             </md-table-row>
           </template>
         </md-table>
@@ -28,17 +30,12 @@
       <div class="md-layout-item">
         <md-card>
           <md-card-header>
-            <div class="md-title">Card without hover effect</div>
+            <div class="md-title">Scores</div>
           </md-card-header>
 
           <md-card-content>
             <chart :options="data"></chart>
           </md-card-content>
-
-          <md-card-actions>
-            <md-button>Action</md-button>
-            <md-button>Action</md-button>
-          </md-card-actions>
         </md-card>
       </div>
     </div>
@@ -47,6 +44,7 @@
 
 <script>
   import System from "@/model/System";
+  import io from "socket.io-client";
   import ECharts from 'vue-echarts/components/ECharts.vue'
   import 'echarts/lib/chart/line'
   import 'echarts/lib/component/tooltip'
@@ -58,7 +56,8 @@
       return {
         ranking: [],
         allScoreLogs: [],
-        startTime: [],
+        startTime: new Date(),
+        scores: {},
         data: {
           title: {
             text: "Scores"
@@ -82,12 +81,86 @@
         loading: false,
       }
     },
-    mounted() {
+    async mounted() {
+      let systemInfo = await System.getSystemInfo();
+      this.startTime = new Date(systemInfo.startTime);
       this.loadRanking();
+      this.watchChanges();
+    },
+    watch: {
     },
     methods: {
+      watchChanges() {
+        let socket = io("http://localhost:4000");
+        socket.on("message", message => {
+          message = JSON.parse(message);
+          if (message.type === "team:score") {
+            // 分数变动
+            let logTime = new Date(message.data.time);
+            // 更新分数映射表
+            this.scores = {
+              ...this.scores,
+              [message.data.teamName]: (this.scores[message.data.teamName] || 0) + parseInt(message.data.inc)
+            };
+
+            let line = this.data.series.find(line => line.name === message.data.teamName);
+            // 更新折线图
+            if (line){
+              line.data.push({
+                name: `${logTime.getFullYear()}-${logTime.getMonth() + 1}-${logTime.getDate()} ${logTime.getHours()}:${logTime.getMinutes()}:${logTime.getSeconds()}`,
+                value: [
+                  logTime,
+                  this.scores[message.data.teamName]
+                ]
+              })
+            }
+            else{
+              this.data.series.push({
+                name: message.data.teamName,
+                type: "line",
+                data: [{
+                  name: `${this.startTime.getFullYear()}-${this.startTime.getMonth() + 1}-${this.startTime.getDate()} ${this.startTime.getHours()}:${this.startTime.getMinutes()}:${this.startTime.getSeconds()}`,
+                  value: [
+                    this.startTime,
+                    0
+                  ]
+                },{
+                  name: `${logTime.getFullYear()}-${logTime.getMonth() + 1}-${logTime.getDate()} ${logTime.getHours()}:${logTime.getMinutes()}:${logTime.getSeconds()}`,
+                  value: [
+                    logTime,
+                    this.scores[message.data.teamName]
+                  ]
+                }]
+              })
+            }
+            // 更新排行表
+            let ranking = Array.from(Object.keys(this.scores), c => {
+              return {
+                teamName: c,
+                score: this.scores[c]
+              }
+            });
+            ranking = ranking.sort((a, b) => {
+              return b.score - a.score;
+            });
+
+            // 分数变化效果
+            let changedTeam = ranking.find(t => t.teamName === message.data.teamName);
+            changedTeam.effect = "";
+            this.$nextTick(() => {
+              changedTeam.effect = parseInt(message.data.inc) < 0 ? "score-desc" : "score-inc";
+            });
+            this.ranking = ranking;
+          }
+        });
+      },
       async loadRanking() {
         let result = await System.getAllLogs();
+
+        if (result.length === 0){
+          return;
+        }
+
         let scoreLogs = result.filter(log => {
           return log.type === "team:score";
         });
@@ -102,6 +175,7 @@
             scores[log.data.teamName] = parseInt(log.data.inc);
           }
         }
+        this.scores = scores;
         let ranking = Array.from(Object.keys(scores), c => {
           return {
             teamName: c,
@@ -149,13 +223,6 @@
             let nowScore = teamScores[log.data.teamName] + parseInt(log.data.inc);
             teamScores[log.data.teamName] += parseInt(log.data.inc);
             let logTime = new Date(log.data.time);
-            console.log({
-              name: `${logTime.getFullYear()}-${logTime.getMonth() + 1}-${logTime.getDate()} ${logTime.getHours()}:${logTime.getMinutes()}:${logTime.getSeconds()}`,
-              value: [
-                logTime,
-                nowScore
-              ]
-            });
             data[log.data.teamName].push({
               name: `${logTime.getFullYear()}-${logTime.getMonth() + 1}-${logTime.getDate()} ${logTime.getHours()}:${logTime.getMinutes()}:${logTime.getSeconds()}`,
               value: [
@@ -173,6 +240,7 @@
             data: data[teamName]
           }
         });
+
         return series;
       }
     },
@@ -193,5 +261,34 @@
   .main-panel {
     padding: 0 2rem;
     margin: 1rem 0;
+  }
+
+  .echarts {
+    width: 100%;
+  }
+
+  .score-desc {
+    animation-duration: 4s;
+    animation-name: desc;
+  }
+  .score-inc {
+    animation-duration: 4s;
+    animation-name: inc;
+  }
+  @keyframes desc {
+    from {
+      color: #ff6d6d;
+    }
+    to {
+      color: black;
+    }
+  }
+  @keyframes inc {
+    from {
+      color: #11b95c;
+    }
+    to {
+      color: black;
+    }
   }
 </style>

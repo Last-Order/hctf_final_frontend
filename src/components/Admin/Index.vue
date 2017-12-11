@@ -1,0 +1,151 @@
+<template>
+  <div class="main-container">
+    <md-toolbar class="md-primary">
+      <h3 class="md-title">HCTF 2017</h3>
+    </md-toolbar>
+    <div class="md-layout main-panel">
+      <div class="md-layout-item md-gutter">
+        <template v-if="showAdmin">
+          <md-card>
+            <md-card-header>
+              <div class="md-title">日志</div>
+            </md-card-header>
+
+            <md-card-content>
+              <template v-for="log in logs">
+                <div v-if="log.type === 'team:score'">
+                  [<span :class="getLevelClassName(log.level)">{{log.level | levelToText}}</span>]
+                  [<span class="log-time"> {{log.data.time}} </span>] 队伍
+                  <span class="log-teamName"> {{log.data.teamName}} </span> 分数
+                  <span class="log-score" :class="parseInt(log.data.inc) < 0 ? 'log-score-neg' : 'log-score-pos'">
+                      {{parseInt(log.data.inc) < 0 ? '-' : '+'}}{{Math.abs(log.data.inc)}}
+                    </span>
+                </div>
+                <div v-if="log.type === 'flag:submit'">
+                  [<span :class="getLevelClassName(log.level)">{{log.level | levelToText}}</span>]
+                  [<span class="log-time"> {{ log.time }} </span>] 队伍 <span class="log-teamName"> {{log.data.teamName}} </span>
+                  提交 Flag
+                  <span class="log-flag">{{ log.data.flag}} </span>
+                  <span class="log-flag-status"> ({{log.data.status}}) </span>
+                </div>
+              </template>
+            </md-card-content>
+
+          </md-card>
+        </template>
+        <template v-else>
+          <form novalidate class="md-layout-row md-gutter">
+            <md-card class="md-flex-50 md-flex-small-100">
+              <md-card-header>
+                <div class="md-title">输入Admin Token</div>
+              </md-card-header>
+
+              <md-card-content>
+                <div class="md-layout-row md-layout-wrap md-gutter">
+                  <div class="md-flex md-flex-small-100">
+                    <md-field>
+                      <label for="token">Admin Token</label>
+                      <md-input name="token" id="token" v-model="token"></md-input>
+                    </md-field>
+                  </div>
+                </div>
+
+              </md-card-content>
+
+              <md-progress-bar md-mode="indeterminate" v-if="loading"/>
+
+              <md-card-actions>
+                <md-button type="submit" class="md-primary" :disabled="loading" @click.prevent="login">Login</md-button>
+              </md-card-actions>
+            </md-card>
+          </form>
+        </template>
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+  import io from "socket.io-client";
+
+  export default {
+    data() {
+      return {
+        showAdmin: false,
+        token: '',
+        loading: false,
+        logs: [],
+        levelMap: ["ERROR", "WARNING", "INFO", "DEBUG"]
+      }
+    },
+    methods: {
+      login() {
+        let token = this.token;
+        this.showAdmin = true;
+        let socket = io("http://localhost:4000", {
+          query: {
+            key: token
+          }
+        });
+        socket.on("message", message => {
+          this.logs.unshift(JSON.parse(message));
+        })
+      },
+      getLevelClassName(level) {
+        return "log-level-" + this.levelMap[level].toLowerCase();
+      }
+    },
+    filters: {
+      levelToText(level) {
+        const levelMap = ["ERROR", "WARNING", "INFO", "DEBUG"];
+        return levelMap[level];
+      }
+    }
+  }
+</script>
+<style scoped>
+  .main-container {
+    margin: 0;
+    padding: 0;
+  }
+
+  .main-panel {
+    padding: 0 2rem;
+    margin: 1rem 0;
+  }
+
+  .log-time {
+    color: #aaa;
+  }
+
+  .log-teamName {
+    font-weight: bold;
+  }
+
+  .log-score, .log-flag{
+    font-family: Consolas, monospace;
+  }
+
+  .log-score-neg {
+    color: red;
+  }
+
+  .log-score-pos {
+    color: #448833;
+  }
+
+  .log-level-error {
+    color: red;
+  }
+
+  .log-level-warning {
+    color: orange;
+  }
+
+  .log-level-info {
+    color: #38a5ff;
+  }
+
+  .log-level-debug {
+    color: #aaa;
+  }
+</style>
