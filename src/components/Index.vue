@@ -2,41 +2,58 @@
   <div class="main-container">
     <md-toolbar class="md-primary">
       <h3 class="md-title">HCTF 2017</h3>
+      <div class="md-toolbar-section-end">
+        <div>
+          <img src="static/logo.png" class="logo">
+        </div>
+      </div>
     </md-toolbar>
     <div class="md-layout md-gutter main-panel">
-      <div class="md-layout-item">
-        <md-table md-card>
-          <md-table-toolbar>
-            <h1 class="md-title">Ranking</h1>
-          </md-table-toolbar>
+      <div class="md-layout md-gutter">
+        <div class="md-layout-item">
+          <md-table md-card>
+            <md-table-toolbar>
+              <div class="md-title">Ranking</div>
+            </md-table-toolbar>
 
-          <md-table-row>
-            <md-table-head md-numeric>#</md-table-head>
-            <md-table-head>队伍名</md-table-head>
-            <md-table-head>分数</md-table-head>
-          </md-table-row>
-
-          <template v-for="(team, index) in ranking">
-            <md-table-row :key="team.teamName">
-              <md-table-cell md-numeric>{{index + 1}}</md-table-cell>
-              <md-table-cell>{{team.teamName}}</md-table-cell>
-              <md-table-cell>
-                <span :class="team.effect">{{team.score}}</span>
-              </md-table-cell>
+            <md-table-row>
+              <md-table-head md-numeric>#</md-table-head>
+              <md-table-head>队伍名</md-table-head>
+              <md-table-head>分数</md-table-head>
             </md-table-row>
-          </template>
-        </md-table>
-      </div>
-      <div class="md-layout-item">
-        <md-card>
-          <md-card-header>
-            <div class="md-title">Scores</div>
-          </md-card-header>
 
-          <md-card-content>
-            <chart :options="data"></chart>
-          </md-card-content>
-        </md-card>
+            <template v-for="(team, index) in ranking">
+              <md-table-row :key="team.teamName">
+                <md-table-cell md-numeric>{{index + 1}}</md-table-cell>
+                <md-table-cell>{{team.teamName}}</md-table-cell>
+                <md-table-cell>
+                  <span :class="team.effect">{{team.score}}</span>
+                </md-table-cell>
+              </md-table-row>
+            </template>
+          </md-table>
+          <md-card style="margin-top: 2rem;">
+            <md-card-content>
+              <count-down></count-down>
+            </md-card-content>
+          </md-card>
+        </div>
+        <div class="md-layout-item">
+          <md-card>
+            <md-card-header>
+              <div class="md-title">Scores</div>
+            </md-card-header>
+            <md-card-content>
+              <template v-if="ranking.length === 0">
+                <span class="md-display-1">暂不可用</span>
+              </template>
+              <template v-else>
+
+                <chart :options="data"></chart>
+              </template>
+            </md-card-content>
+          </md-card>
+        </div>
       </div>
     </div>
   </div>
@@ -46,6 +63,7 @@
   import System from "@/model/System";
   import io from "socket.io-client";
   import ECharts from 'vue-echarts/components/ECharts.vue'
+  import CountDown from "@/components/Common/CountDown";
   import 'echarts/lib/chart/line'
   import 'echarts/lib/component/tooltip'
   import 'echarts/lib/component/legendScroll'
@@ -245,7 +263,8 @@
       }
     },
     components: {
-      'chart': ECharts
+      'chart': ECharts,
+      CountDown
     }
 
   }
@@ -261,6 +280,10 @@
   .main-panel {
     padding: 0 2rem;
     margin: 1rem 0;
+  }
+
+  .logo {
+    max-height: 80px;
   }
 
   .echarts {
