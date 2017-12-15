@@ -3,8 +3,8 @@
     <md-toolbar class="md-primary">
       <h3 class="md-title">HCTF 2017</h3>
       <div class="md-toolbar-section-end">
-        <div>
-          <img src="static/logo.png" class="logo">
+        <div style="margin-right: 2rem">
+          <img src="static/logo.png" class="logo" @click="$router.push('/log')">
         </div>
       </div>
     </md-toolbar>
@@ -109,10 +109,11 @@
     },
     methods: {
       watchChanges() {
-        let socket = io("http://localhost:4000");
+        let socket = io("http://192.168.1.110:4000");
         socket.on("message", message => {
           message = JSON.parse(message);
           if (message.type === "team:score") {
+            this.allScoreLogs.push(message);
             // 分数变动
             let logTime = new Date(message.data.time);
             // 更新分数映射表
@@ -284,6 +285,7 @@
 
   .logo {
     max-height: 80px;
+    cursor: pointer;
   }
 
   .echarts {

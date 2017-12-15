@@ -33,11 +33,21 @@
                 <div v-if="log.type === 'flag:submit'">
                   [<span :class="getLevelClassName(log.level)">{{log.level | levelToText}}</span>]
                   [<span class="log-time"> {{ log.time }} </span>] 队伍 <span class="log-teamName"> {{log.data.teamName}} </span>
-                  提交 Flag
+                  提交
+                  <span v-if="log.data.challengeName">问题</span> <span class="log-challenge-name">{{ log.data.challengeName }}</span>
+                  Flag
                   <span class="log-flag">{{ log.data.flag}} </span>
                   <span class="log-flag-status"> ({{log.data.status}}) </span>
                 </div>
+                <div v-if="log.type === 'status'">
+                  [<span :class="getLevelClassName(log.level)">{{log.level | levelToText}}</span>]
+                  [<span class="log-time"> {{ log.time }} </span>] 队伍 <span class="log-teamName"> {{log.data.teamName}} </span>
+                  的
+                  问题 <span class="log-challenge-name">{{ log.data.challengeName }}</span>
+                  服务状态现在为 <span style="color: red;">down</span>
+                </div>
               </template>
+
             </md-card-content>
 
           </md-card>
@@ -79,7 +89,7 @@
   export default {
     data() {
       return {
-        showAdmin: false,
+        showAdmin: true,
         token: '',
         loading: false,
         logs: [],
@@ -87,16 +97,16 @@
         logFilter: 3
       }
     },
+    mounted() {
+      this.login();
+    },
     methods: {
       login() {
         let token = this.token;
         this.showAdmin = true;
-        let socket = io("http://localhost:4000", {
-          query: {
-            key: token
-          }
-        });
+        let socket = io("http://192.168.1.110:4000");
         socket.on("message", message => {
+          console.log(message);
           this.logs.unshift(JSON.parse(message));
         })
       },
@@ -133,6 +143,10 @@
 
   .log-score, .log-flag{
     font-family: Consolas, monospace;
+  }
+
+  .log-challenge-name{
+    font-weight: bold;
   }
 
   .log-score-neg {

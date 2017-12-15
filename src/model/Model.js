@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 class Model {
-  base = '/API';
+  base = 'http://192.168.1.110:3000';
   instance;
 
   constructor() {

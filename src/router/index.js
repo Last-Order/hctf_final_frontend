@@ -12,8 +12,8 @@ export default new Router({
       component: Index
     },
     {
-      path: "/admin",
-      component: resolve => require(['@/components/Admin/Index.vue'], resolve)
+      path: "/log",
+      component: resolve => require(['@/components/Log/Index.vue'], resolve)
     }
   ]
 })
