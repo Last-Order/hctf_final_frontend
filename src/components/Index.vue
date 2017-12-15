@@ -63,7 +63,7 @@
   import System from "@/model/System";
   import io from "socket.io-client";
   import ECharts from 'vue-echarts/components/ECharts.vue'
-  import CountDown from "@/components/Common/CountDown";
+  import CountDown from "@/components/Common/Countdown";
   import 'echarts/lib/chart/line'
   import 'echarts/lib/component/tooltip'
   import 'echarts/lib/component/legendScroll'
