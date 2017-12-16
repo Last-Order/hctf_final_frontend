@@ -126,10 +126,10 @@
           Team03: "Blue-Whale",
           Team04: "kn0ck",
           Team05: "Redbud",
-          Team06: "FlappyPig",
+          Team06: "Eur3kA",
           Team07: "Nu1L",
           Team08: "ROIS",
-          Team09: "Eur3kA",
+          Team09: "FlappyPig",
           Team10: "******",
         }[teamName];
       }
