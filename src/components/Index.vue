@@ -25,7 +25,7 @@
             <template v-for="(team, index) in ranking">
               <md-table-row :key="team.teamName">
                 <md-table-cell md-numeric>{{index + 1}}</md-table-cell>
-                <md-table-cell>{{team.teamName}}</md-table-cell>
+                <md-table-cell>{{team.teamName | parseTeamName}}</md-table-cell>
                 <md-table-cell>
                   <span :class="team.effect">{{team.score}}</span>
                 </md-table-cell>
@@ -107,6 +107,22 @@
     },
     watch: {
     },
+    filters: {
+      parseTeamName(teamName) {
+        return {
+          Team01: "A8",
+          Team02: "AAA",
+          Team03: "Blue-Whale",
+          Team04: "kn0ck",
+          Team05: "Redbud",
+          Team06: "FlappyPig",
+          Team07: "Nu1L",
+          Team08: "ROIS",
+          Team09: "Eur3kA",
+          Team10: "******",
+        }[teamName];
+      }
+    },
     methods: {
       watchChanges() {
         let socket = io("http://192.168.1.110:4000");
@@ -119,7 +135,7 @@
             // 更新分数映射表
             this.scores = {
               ...this.scores,
-              [message.data.teamName]: (this.scores[message.data.teamName] || 0) + parseInt(message.data.inc)
+              [message.data.teamName]: (this.scores[message.data.teamName] || 50000) + parseInt(message.data.inc)
             };
 
             let line = this.data.series.find(line => line.name === message.data.teamName);
@@ -231,13 +247,13 @@
               teamScores[log.data.teamName] = 0;
               data[log.data.teamName] = [];
               // 起始点
-              data[log.data.teamName].push({
-                name: `${this.startTime.getFullYear()}-${this.startTime.getMonth() + 1}-${this.startTime.getDate()} ${this.startTime.getHours()}:${this.startTime.getMinutes()}:${this.startTime.getSeconds()}`,
-                value: [
-                  this.startTime,
-                  0
-                ]
-              })
+              // data[log.data.teamName].push({
+              //   name: `${this.startTime.getFullYear()}-${this.startTime.getMonth() + 1}-${this.startTime.getDate()} ${this.startTime.getHours()}:${this.startTime.getMinutes()}:${this.startTime.getSeconds()}`,
+              //   value: [
+              //     this.startTime,
+              //     0
+              //   ]
+              // })
             }
             let nowScore = teamScores[log.data.teamName] + parseInt(log.data.inc);
             teamScores[log.data.teamName] += parseInt(log.data.inc);

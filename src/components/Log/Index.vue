@@ -25,14 +25,14 @@
                 <div v-if="log.type === 'team:score'">
                   [<span :class="getLevelClassName(log.level)">{{log.level | levelToText}}</span>]
                   [<span class="log-time"> {{log.data.time}} </span>] 队伍
-                  <span class="log-teamName"> {{log.data.teamName}} </span> 分数
+                  <span class="log-teamName"> {{log.data.teamName | parseTeamName }} </span> 分数
                   <span class="log-score" :class="parseInt(log.data.inc) < 0 ? 'log-score-neg' : 'log-score-pos'">
                       {{parseInt(log.data.inc) < 0 ? '-' : '+'}}{{Math.abs(log.data.inc)}}
                     </span>
                 </div>
                 <div v-if="log.type === 'flag:submit'">
                   [<span :class="getLevelClassName(log.level)">{{log.level | levelToText}}</span>]
-                  [<span class="log-time"> {{ log.time }} </span>] 队伍 <span class="log-teamName"> {{log.data.teamName}} </span>
+                  [<span class="log-time"> {{ log.time }} </span>] 队伍 <span class="log-teamName"> {{log.data.teamName | parseTeamName}} </span>
                   提交
                   <span v-if="log.data.challengeName">问题</span> <span class="log-challenge-name">{{ log.data.challengeName }}</span>
                   Flag
@@ -41,7 +41,7 @@
                 </div>
                 <div v-if="log.type === 'status'">
                   [<span :class="getLevelClassName(log.level)">{{log.level | levelToText}}</span>]
-                  [<span class="log-time"> {{ log.time }} </span>] 队伍 <span class="log-teamName"> {{log.data.teamName}} </span>
+                  [<span class="log-time"> {{ log.time }} </span>] 队伍 <span class="log-teamName"> {{log.data.teamName | parseTeamName }} </span>
                   的
                   问题 <span class="log-challenge-name">{{ log.data.challengeName }}</span>
                   服务状态现在为 <span style="color: red;">down</span>
@@ -118,6 +118,20 @@
       levelToText(level) {
         const levelMap = ["ERROR", "WARNING", "INFO", "DEBUG"];
         return levelMap[level];
+      },
+      parseTeamName(teamName) {
+        return {
+          Team01: "A8",
+          Team02: "AAA",
+          Team03: "Blue-Whale",
+          Team04: "kn0ck",
+          Team05: "Redbud",
+          Team06: "FlappyPig",
+          Team07: "Nu1L",
+          Team08: "ROIS",
+          Team09: "Eur3kA",
+          Team10: "******",
+        }[teamName];
       }
     }
   }
