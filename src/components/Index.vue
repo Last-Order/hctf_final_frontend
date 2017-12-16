@@ -92,7 +92,8 @@
             boundaryGap: false,
           },
           yAxis: {
-            type: "value"
+            type: "value",
+            min: 50000
           },
           series: []
         },
@@ -147,7 +148,10 @@
                   logTime,
                   this.scores[message.data.teamName]
                 ]
-              })
+              });
+              if (this.scores[message.data.teamName] < this.data.yAxis.min){
+                this.data.yAxis.min = this.scores[message.data.teamName];
+              }
             }
             else{
               this.data.series.push({
@@ -221,6 +225,7 @@
           return b.score - a.score;
         });
         this.ranking = ranking;
+        this.data.yAxis.min = ranking[ranking.length - 1].score;
         this.startTime = new Date(scoreLogs.reduce((a, b) => {
           let timeA = a.data && new Date(a.data.time) || a;
           let timeB = b.data && new Date(b.data.time) || b;
