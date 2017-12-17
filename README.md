@@ -1,21 +1,16 @@
-# hctf_final_frontend
+# HCTF 2017 Final Frontend
 
-> HCTF Final Frontend
+HCTF 2017 线下赛前端。这个就写的更粗暴了。基本上没什么可以看的。
 
-## Build Setup
+要改的地方大概就是两个`Index.vue`和`Model.js`里面的后端的地址。
 
-``` bash
-# install dependencies
+## 运行
+```bash
 npm install
-
-# serve with hot reload at localhost:8080
 npm run dev
-
-# build for production with minification
-npm run build
-
-# build for production and view the bundle analyzer report
-npm run build --report
 ```
 
-For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+## 编译生产环境文件
+```bash
+npm run build
+```
