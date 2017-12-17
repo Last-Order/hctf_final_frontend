@@ -5,80 +5,50 @@
     </md-toolbar>
     <div class="md-layout main-panel">
       <div class="md-layout-item md-gutter">
-        <template v-if="showAdmin">
-          <md-card>
-            <md-card-header>
-              <div class="md-title">日志</div>
-              <md-field style="width: 200px">
-                <label for="logFilter">日志筛选器</label>
-                <md-select v-model="logFilter" name="logFilter" id="logFilter">
-                  <md-option value="3">DEBUG 及以上</md-option>
-                  <md-option value="2">INFO 及以上</md-option>
-                  <md-option value="1">WARNING 及以上</md-option>
-                  <md-option value="0">ERROR 及以上</md-option>
-                </md-select>
-              </md-field>
-            </md-card-header>
+        <md-card>
+          <md-card-header>
+            <div class="md-title">日志</div>
+            <md-field style="width: 200px">
+              <label for="logFilter">日志筛选器</label>
+              <md-select v-model="logFilter" name="logFilter" id="logFilter">
+                <md-option value="3">DEBUG 及以上</md-option>
+                <md-option value="2">INFO 及以上</md-option>
+                <md-option value="1">WARNING 及以上</md-option>
+                <md-option value="0">ERROR 及以上</md-option>
+              </md-select>
+            </md-field>
+          </md-card-header>
 
-            <md-card-content>
-              <template v-for="log in logs.filter(l => l.level <= logFilter)">
-                <div v-if="log.type === 'team:score'">
-                  [<span :class="getLevelClassName(log.level)">{{log.level | levelToText}}</span>]
-                  [<span class="log-time"> {{log.data.time}} </span>] 队伍
-                  <span class="log-teamName"> {{log.data.teamName | parseTeamName }} </span> 分数
-                  <span class="log-score" :class="parseInt(log.data.inc) < 0 ? 'log-score-neg' : 'log-score-pos'">
+          <md-card-content>
+            <template v-for="log in logs.filter(l => l.level <= logFilter)">
+              <div v-if="log.type === 'team:score'">
+                [<span :class="getLevelClassName(log.level)">{{log.level | levelToText}}</span>]
+                [<span class="log-time"> {{log.data.time}} </span>] 队伍
+                <span class="log-teamName"> {{log.data.teamName | parseTeamName }} </span> 分数
+                <span class="log-score" :class="parseInt(log.data.inc) < 0 ? 'log-score-neg' : 'log-score-pos'">
                       {{parseInt(log.data.inc) < 0 ? '-' : '+'}}{{Math.abs(log.data.inc)}}
                     </span>
-                </div>
-                <div v-if="log.type === 'flag:submit'">
-                  [<span :class="getLevelClassName(log.level)">{{log.level | levelToText}}</span>]
-                  [<span class="log-time"> {{ log.time }} </span>] 队伍 <span class="log-teamName"> {{log.data.teamName | parseTeamName}} </span>
-                  提交
-                  <span v-if="log.data.challengeName">问题</span> <span class="log-challenge-name">{{ log.data.challengeName }}</span>
-                  Flag
-                  <span class="log-flag">{{ log.data.flag}} </span>
-                  <span class="log-flag-status"> ({{log.data.status}}) </span>
-                </div>
-                <div v-if="log.type === 'status'">
-                  [<span :class="getLevelClassName(log.level)">{{log.level | levelToText}}</span>]
-                  [<span class="log-time"> {{ log.time }} </span>] 队伍 <span class="log-teamName"> {{log.data.teamName | parseTeamName }} </span>
-                  的
-                  问题 <span class="log-challenge-name">{{ log.data.challengeName }}</span>
-                  服务状态现在为 <span style="color: red;">down</span>
-                </div>
-              </template>
+              </div>
+              <div v-if="log.type === 'flag:submit'">
+                [<span :class="getLevelClassName(log.level)">{{log.level | levelToText}}</span>]
+                [<span class="log-time"> {{ log.time }} </span>] 队伍 <span class="log-teamName"> {{log.data.teamName | parseTeamName}} </span>
+                提交
+                <span v-if="log.data.challengeName">问题</span> <span class="log-challenge-name">{{ log.data.challengeName }}</span>
+                Flag
+                <span class="log-flag">{{ log.data.flag}} </span>
+                <span class="log-flag-status"> ({{log.data.status}}) </span>
+              </div>
+              <div v-if="log.type === 'status'">
+                [<span :class="getLevelClassName(log.level)">{{log.level | levelToText}}</span>]
+                [<span class="log-time"> {{ log.time }} </span>] 队伍 <span class="log-teamName"> {{log.data.teamName | parseTeamName }} </span>
+                的
+                问题 <span class="log-challenge-name">{{ log.data.challengeName }}</span>
+                服务状态现在为 <span style="color: red;">down</span>
+              </div>
+            </template>
 
-            </md-card-content>
-
-          </md-card>
-        </template>
-        <template v-else>
-          <form novalidate class="md-layout-row md-gutter">
-            <md-card class="md-flex-50 md-flex-small-100">
-              <md-card-header>
-                <div class="md-title">输入Admin Token</div>
-              </md-card-header>
-
-              <md-card-content>
-                <div class="md-layout-row md-layout-wrap md-gutter">
-                  <div class="md-flex md-flex-small-100">
-                    <md-field>
-                      <label for="token">Admin Token</label>
-                      <md-input name="token" id="token" v-model="token"></md-input>
-                    </md-field>
-                  </div>
-                </div>
-
-              </md-card-content>
-
-              <md-progress-bar md-mode="indeterminate" v-if="loading"/>
-
-              <md-card-actions>
-                <md-button type="submit" class="md-primary" :disabled="loading" @click.prevent="login">Login</md-button>
-              </md-card-actions>
-            </md-card>
-          </form>
-        </template>
+          </md-card-content>
+        </md-card>
       </div>
     </div>
   </div>
@@ -106,7 +76,10 @@
         this.showAdmin = true;
         let socket = io("http://192.168.1.110:4000");
         socket.on("message", message => {
-          console.log(message);
+          if (this.logs.length >= 1500) {
+            // 日志数量上限
+            this.logs.pop();
+          }
           this.logs.unshift(JSON.parse(message));
         })
       },
@@ -155,11 +128,11 @@
     font-weight: bold;
   }
 
-  .log-score, .log-flag{
+  .log-score, .log-flag {
     font-family: Consolas, monospace;
   }
 
-  .log-challenge-name{
+  .log-challenge-name {
     font-weight: bold;
   }
 
